@@ -435,12 +435,4 @@ public class MP3InfoManager {
 
         return mergedBlock;
     }
-
-    private String byteArrayToHex(byte[] a) {
-        StringBuilder sb = new StringBuilder();
-        for (final byte b : a) {
-            sb.append(String.format("%02x ", b & 0xff));
-        }
-        return sb.toString();
-    }
 }

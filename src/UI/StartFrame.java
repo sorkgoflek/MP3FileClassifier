@@ -7,7 +7,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-@SuppressWarnings("serial")
 public class StartFrame extends JFrame implements ActionListener {
     String sourceDir;
     String destDir;

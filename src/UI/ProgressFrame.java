@@ -6,7 +6,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 
-@SuppressWarnings("serial")
 public class ProgressFrame extends JFrame implements ActionListener {
     static public int N_finishedFile;
     final int ING = 0;
