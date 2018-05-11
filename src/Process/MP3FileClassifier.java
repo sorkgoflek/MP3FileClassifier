@@ -3,16 +3,12 @@ package Process;
 import UI.ProgressFrame;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 
 public class MP3FileClassifier extends Thread {
     public final static boolean PRINT_PROCESS = false;
 
-    ArrayList<MP3File> MP3FileList = new ArrayList<MP3File>();
+    ArrayList<MP3FileMeta> MP3FileMetaList = new ArrayList<MP3FileMeta>();
 
     String sourceDir;
     String destDir;
@@ -22,15 +18,15 @@ public class MP3FileClassifier extends Thread {
     public MP3FileClassifier(String sd, String dd) {
         sourceDir = sd;
         destDir = dd;
-        setMP3FileList(new File(sourceDir));
+        setMP3FileMetaList(new File(sourceDir));
 
-        System.out.println("MP3FileList.size(): " + MP3FileList.size());
+        System.out.println("MP3FileMetaList.size(): " + MP3FileMetaList.size());
 
-        if (MP3FileList.size() == 0) {//폴더에 파일이 없으면
+        if (MP3FileMetaList.size() == 0) {//폴더에 파일이 없으면
             System.exit(0);
         }
 
-        progressFrame = new ProgressFrame(MP3FileList.size());
+        progressFrame = new ProgressFrame(MP3FileMetaList.size());
 
         start();
     }
@@ -38,31 +34,25 @@ public class MP3FileClassifier extends Thread {
     public void run() {
         MP3InfoManager mim = new MP3InfoManager();
 
-        for (MP3File MF : MP3FileList) {
-            if (mim.openMP3(MF.path)) {
-
-                System.out.println(mim.showALL()); // DREW
+        for (MP3FileMeta meta : MP3FileMetaList) {
+            if (mim.openMP3(meta.path)) {
 
                 //메타 데이터 추출
-                MF.albumName = mim.getAlbum();
-                MF.artist = mim.getArtist();
-                MF.titleName = mim.getTitle();
-                MF.trackNumber = mim.getTrackNumber();
+                meta.albumName = mim.getAlbum();
+                meta.artist = mim.getArtist();
+                meta.titleName = mim.getTitle();
+                meta.trackNumber = mim.getTrackNumber();
 
-                byte[] newFileData = null;
-                String rightArtistName = mim.getRightArtistName(MF.artist);
+                String rightArtistName = mim.getRightArtistName(meta.artist);
 
                 if (rightArtistName != null) { //가수 명 변경 후 파일 생성
-                    MF.artist = rightArtistName;
-                    newFileData = mim.getNewFileData(MF.artist);
+                    meta.artist = rightArtistName;
                 }
 
-                mim.closeMP3();
-
                 //파일명 생성 (경로 포함 x)
-                MF.fileName = "" + MF.trackNumber + "-" + MF.titleName + ".mp3";
+                meta.fileName = "" + meta.trackNumber + "-" + meta.titleName + ".mp3";
 
-                handleFile(MF, newFileData);
+                saveMp3File(meta, mim);
 
                 ProgressFrame.N_finishedFile++;
             }
@@ -78,10 +68,10 @@ public class MP3FileClassifier extends Thread {
     }
 
     void closeAll() {
-        MP3FileList.clear();
+        MP3FileMetaList.clear();
     }
 
-    void setMP3FileList(File file) {
+    void setMP3FileMetaList(File file) {
 
         if (file == null || !file.exists()) {
             return;
@@ -93,7 +83,7 @@ public class MP3FileClassifier extends Thread {
 
             if (files != null) {
                 for (int i = 0; i < files.length; i++) {
-                    setMP3FileList(new File(file, files[i]));
+                    setMP3FileMetaList(new File(file, files[i]));
                 }
             }
         } else {
@@ -102,7 +92,7 @@ public class MP3FileClassifier extends Thread {
                 String path = file.getCanonicalPath();
                 //file.
                 if ((path.endsWith(".mp3"))) {
-                    MP3FileList.add(new MP3File(path));
+                    MP3FileMetaList.add(new MP3FileMeta(path));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -110,40 +100,36 @@ public class MP3FileClassifier extends Thread {
         }
     }
 
-    void handleFile(MP3File mp, byte[] newFileData) {
+    void saveMp3File(MP3FileMeta meta, MP3InfoManager mim) {
 
         try {
-            //디렉토리 명 설정
-            mp.artist = replaceBadWords(mp.artist);
-            mp.albumName = replaceBadWords(mp.albumName);
-            mp.fileName = replaceBadWords(mp.fileName);
-
-            if (PRINT_PROCESS) {
-                System.out.println("change: " + mp.albumName);
-                System.out.println("change: " + mp.artist);
-                System.out.println("change: " + mp.fileName);
-            }
-
-            String dir = destDir + "\\" + mp.artist + "\\" + mp.albumName;
-
-            //디렉토리 생성
+            String dir = getDir(meta);
             new File(dir).mkdirs();
 
-            String dest = dir + "\\" + mp.fileName;
+            String dest = dir + "\\" + meta.fileName;
+            mim.setMetadata(meta, dest);
 
-            if (newFileData == null) {
-                //Files.move(Paths.get(mp.path), Paths.get(dest), StandardCopyOption.ATOMIC_MOVE);
-                Files.copy(Paths.get(mp.path), Paths.get(dest), StandardCopyOption.REPLACE_EXISTING);
-            } else {
-                Files.write(Paths.get(dest), newFileData, StandardOpenOption.CREATE);
-            }
-
-            System.out.println("DONE: " + mp.path + "\n\t-> " + dest);
+            System.out.println("DONE: " + meta.path + "\n\t-> " + dest);
 
         } catch (Exception e1) {
             e1.printStackTrace();
-            System.out.println("FAIL: " + mp.path);
+            System.out.println("FAIL: " + meta.path);
         }
+    }
+
+    private String getDir(MP3FileMeta meta) {
+        //디렉토리 명 설정
+        meta.artist = replaceBadWords(meta.artist);
+        meta.albumName = replaceBadWords(meta.albumName);
+        meta.fileName = replaceBadWords(meta.fileName);
+
+        if (PRINT_PROCESS) {
+            System.out.println("change: " + meta.albumName);
+            System.out.println("change: " + meta.artist);
+            System.out.println("change: " + meta.fileName);
+        }
+
+        return destDir + "\\" + meta.artist + "\\" + meta.albumName;
     }
 
     String replaceBadWords(String str) {

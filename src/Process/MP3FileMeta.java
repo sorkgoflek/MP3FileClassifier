@@ -1,6 +1,6 @@
 package Process;
 
-public class MP3File {
+public class MP3FileMeta {
     String path;
 
     String fileName;
@@ -9,7 +9,7 @@ public class MP3File {
     String artist;
     String albumName;
 
-    MP3File(String p) {
+    MP3FileMeta(String p) {
         path = p;
     }
 }
