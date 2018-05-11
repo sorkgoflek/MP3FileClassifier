@@ -1,5 +1,7 @@
 package Process;
 
+import UI.ProgressFrame;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -7,154 +9,155 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 
-import UI.ProgressFrame;
+public class MP3FileClassifier extends Thread {
+    public final static boolean PRINT_PROCESS = false;
 
-public class MP3FileClassifier extends Thread{
+    ArrayList<MP3File> MP3FileList = new ArrayList<MP3File>();
 
-	ArrayList<MP3File> MP3FileList = new ArrayList<MP3File>();
-	
-	String sourceDir;
-	String destDir;
+    String sourceDir;
+    String destDir;
 
-	ProgressFrame progressFrame;
-	
-	public MP3FileClassifier(String sd, String dd){
-		sourceDir = sd;
-		destDir = dd;
-		setMP3FileList(new File(sourceDir));
-	
-		System.out.println("MP3FileList.size(): " + MP3FileList.size());
-		
-		if(MP3FileList.size() == 0){//Æú´õ¿¡ ÆÄÀÏÀÌ ¾øÀ¸¸é
-			System.exit(0);
-		}
-		
-		progressFrame = new ProgressFrame(MP3FileList.size());
-		
-		start();
-	}
-	
-	public void run(){
-		MP3InfoManager mim = new MP3InfoManager();
-		
-		for(MP3File MF : MP3FileList){
-			if(mim.openMP3(MF.path)){
-				//¸ŞÅ¸ µ¥ÀÌÅÍ ÃßÃâ
-				MF.albumName = mim.getAlbum();
-				MF.artist = mim.getArtist();
-				MF.titleName = mim.getTitle();
-				MF.trackNumber = mim.getTrackNumber();
-				
-				byte[] newFileData = null;
-				String rightArtistName = mim.getRightArtistName(MF.artist);
-				
-				if(rightArtistName != null){ //°¡¼ö ¸í º¯°æ ÈÄ ÆÄÀÏ »ı¼º 
-					MF.artist = rightArtistName;
-					newFileData = mim.getNewFileData(MF.artist);
-				}
-				
-				mim.closeMP3();
-				
-				//ÆÄÀÏ¸í »ı¼º (°æ·Î Æ÷ÇÔ x)
-				MF.fileName = "" + MF.trackNumber + "-" + MF.titleName + ".mp3";
-				
-				handleFile(MF, newFileData);
-				
-				ProgressFrame.N_finishedFile++;
-			}
-		}
-			
-		//Á¾·á
-		progressFrame.setEnabled(true);
-		progressFrame.setVisible(false);
-		closeAll();			
-		
-		System.out.println("Process Á¾·á");
-		System.exit(0);
-	}
+    ProgressFrame progressFrame;
 
-	void closeAll(){
-		MP3FileList.clear();
-	}
-	
-	void setMP3FileList(File file) {
-		
-        if(file == null || !file.exists()) {
+    public MP3FileClassifier(String sd, String dd) {
+        sourceDir = sd;
+        destDir = dd;
+        setMP3FileList(new File(sourceDir));
+
+        System.out.println("MP3FileList.size(): " + MP3FileList.size());
+
+        if (MP3FileList.size() == 0) {//í´ë”ì— íŒŒì¼ì´ ì—†ìœ¼ë©´
+            System.exit(0);
+        }
+
+        progressFrame = new ProgressFrame(MP3FileList.size());
+
+        start();
+    }
+
+    public void run() {
+        MP3InfoManager mim = new MP3InfoManager();
+
+        for (MP3File MF : MP3FileList) {
+            if (mim.openMP3(MF.path)) {
+
+                System.out.println(mim.showALL()); // DREW
+
+                //ë©”íƒ€ ë°ì´í„° ì¶”ì¶œ
+                MF.albumName = mim.getAlbum();
+                MF.artist = mim.getArtist();
+                MF.titleName = mim.getTitle();
+                MF.trackNumber = mim.getTrackNumber();
+
+                byte[] newFileData = null;
+                String rightArtistName = mim.getRightArtistName(MF.artist);
+
+                if (rightArtistName != null) { //ê°€ìˆ˜ ëª… ë³€ê²½ í›„ íŒŒì¼ ìƒì„±
+                    MF.artist = rightArtistName;
+                    newFileData = mim.getNewFileData(MF.artist);
+                }
+
+                mim.closeMP3();
+
+                //íŒŒì¼ëª… ìƒì„± (ê²½ë¡œ í¬í•¨ x)
+                MF.fileName = "" + MF.trackNumber + "-" + MF.titleName + ".mp3";
+
+                handleFile(MF, newFileData);
+
+                ProgressFrame.N_finishedFile++;
+            }
+        }
+
+        //ì¢…ë£Œ
+        progressFrame.setEnabled(true);
+        progressFrame.setVisible(false);
+        closeAll();
+
+        System.out.println("Process Done");
+        System.exit(0);
+    }
+
+    void closeAll() {
+        MP3FileList.clear();
+    }
+
+    void setMP3FileList(File file) {
+
+        if (file == null || !file.exists()) {
             return;
         }
-       
-        if(file.isDirectory()) {
-            // µğ·ºÅä¸®¸é ÀÚ½Ä¿ä¼Ò¸¦ »Ì¾Æ ¹İº¹ÇÏ¿© Àç±ÍÈ£Ãâ
-           String[] files = file.list();
 
-           if(files != null) {
-        	   for(int i=0; i<files.length; i++) {
-        		   setMP3FileList(new File(file, files[i]));
-        	   }
-           }
-       } else {
-            // ÆÄÀÏÀÌ¸é count Áõ°¡
-           try {
-               String path = file.getCanonicalPath();
-               //file.
-               if((path.endsWith(".mp3"))) {
-            	   MP3FileList.add(new MP3File(path));
-               }
-           } catch(Exception e) {
+        if (file.isDirectory()) {
+            // ë””ë ‰í† ë¦¬ë©´ ìì‹ìš”ì†Œë¥¼ ë½‘ì•„ ë°˜ë³µí•˜ì—¬ ì¬ê·€í˜¸ì¶œ
+            String[] files = file.list();
+
+            if (files != null) {
+                for (int i = 0; i < files.length; i++) {
+                    setMP3FileList(new File(file, files[i]));
+                }
+            }
+        } else {
+            // íŒŒì¼ì´ë©´ count ì¦ê°€
+            try {
+                String path = file.getCanonicalPath();
+                //file.
+                if ((path.endsWith(".mp3"))) {
+                    MP3FileList.add(new MP3File(path));
+                }
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
 
-	void handleFile(MP3File mp, byte[] newFileData){
+    void handleFile(MP3File mp, byte[] newFileData) {
 
-		try {
-			//µğ·ºÅä¸® ¸í ¼³Á¤
-			mp.artist = replaceBadWords(mp.artist);
-			mp.albumName = replaceBadWords(mp.albumName);
-			mp.fileName = replaceBadWords(mp.fileName);
+        try {
+            //ë””ë ‰í† ë¦¬ ëª… ì„¤ì •
+            mp.artist = replaceBadWords(mp.artist);
+            mp.albumName = replaceBadWords(mp.albumName);
+            mp.fileName = replaceBadWords(mp.fileName);
 
-			/*
-			System.out.println("change: " + mp.albumName);
-			System.out.println("change: " + mp.artist);
-			System.out.println("change: " + mp.fileName);
-			*/
-			
-			String dir = destDir + "\\" + mp.artist + "\\" + mp.albumName;
-			
-			//µğ·ºÅä¸® »ı¼º
-			new File(dir).mkdirs();
-			
-			String dest = dir + "\\" + mp.fileName;
-			
-			if(newFileData == null){
-				//Files.move(Paths.get(mp.path), Paths.get(dest), StandardCopyOption.ATOMIC_MOVE);
-				Files.copy(Paths.get(mp.path), Paths.get(dest), StandardCopyOption.REPLACE_EXISTING);
-			}
-			else{
-				Files.write(Paths.get(dest), newFileData,  StandardOpenOption.CREATE);
-			}
-			
-			System.out.println("DONE: " + mp.path + "\n\t-> " + dest);
-			
-		} catch (Exception e1) {
-			e1.printStackTrace();
-			System.out.println("FAIL: " + mp.path);
-		}
-	}
-	
-	String replaceBadWords(String str){
-		str = str.replace('/', '_');
-		str = str.replace('\\', '_');
-		str = str.replace(':', '_');
-		str = str.replace('?', '_');
-		str = str.replace('*', '_');
-		str = str.replace('"', '_');
-		str = str.replace('>', '_');
-		str = str.replace('<', '_');
-		str = str.replace('|', '_');
-		
-		return str;
-	}
-	
+            if (PRINT_PROCESS) {
+                System.out.println("change: " + mp.albumName);
+                System.out.println("change: " + mp.artist);
+                System.out.println("change: " + mp.fileName);
+            }
+
+            String dir = destDir + "\\" + mp.artist + "\\" + mp.albumName;
+
+            //ë””ë ‰í† ë¦¬ ìƒì„±
+            new File(dir).mkdirs();
+
+            String dest = dir + "\\" + mp.fileName;
+
+            if (newFileData == null) {
+                //Files.move(Paths.get(mp.path), Paths.get(dest), StandardCopyOption.ATOMIC_MOVE);
+                Files.copy(Paths.get(mp.path), Paths.get(dest), StandardCopyOption.REPLACE_EXISTING);
+            } else {
+                Files.write(Paths.get(dest), newFileData, StandardOpenOption.CREATE);
+            }
+
+            System.out.println("DONE: " + mp.path + "\n\t-> " + dest);
+
+        } catch (Exception e1) {
+            e1.printStackTrace();
+            System.out.println("FAIL: " + mp.path);
+        }
+    }
+
+    String replaceBadWords(String str) {
+        str = str.replace('/', '_');
+        str = str.replace('\\', '_');
+        str = str.replace(':', '_');
+        str = str.replace('?', '_');
+        str = str.replace('*', '_');
+        str = str.replace('"', '_');
+        str = str.replace('>', '_');
+        str = str.replace('<', '_');
+        str = str.replace('|', '_');
+
+        return str;
+    }
+
 }

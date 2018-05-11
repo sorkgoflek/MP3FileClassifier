@@ -1,28 +1,23 @@
 package Process;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.regex.PatternSyntaxException;
 
 /*
- * ¾Õ¿¡ ÀÖ´Â ÅÂ±×ÀÇ ±¸Á¶
- * Á¤º¸		Length		offset ¾øÀ½ (±æÀÌ¿¡ µû¶ó À¯µ¿Àû)
+ * ì•ì— ìˆëŠ” íƒœê·¸ì˜ êµ¬ì¡°
+ * ì •ë³´		Length		offset ì—†ìŒ (ê¸¸ì´ì— ë”°ë¼ ìœ ë™ì )
  * TAG		4			TPE1, TALB, TPOS ...
- * °ø¹é		3
- * size		1~2			ÀÌÁø¼ö·Î Ç¥Çö, º¸Åë 1°³
- * °ø¹é		3
+ * ê³µë°±		3
+ * size		1~2			ì´ì§„ìˆ˜ë¡œ í‘œí˜„, ë³´í†µ 1ê°œ
+ * ê³µë°±		3
  * data		size-1
- * 
- * À§ÀÇ ¼ø¼­·Î ¿©·¯ °¡Áö Tag¿Í data°¡ ÀúÀåµÇÀÖÀ½
+ *
+ * ìœ„ì˜ ìˆœì„œë¡œ ì—¬ëŸ¬ ê°€ì§€ Tagì™€ dataê°€ ì €ì¥ë˜ìˆìŒ
  * */
 
 /*
- µÚ¿¡ ÀÖ´Â ÅÂ±×
+ ë’¤ì— ìˆëŠ” íƒœê·¸
  Field      Length    Offsets
  Tag        3           0-2
  Songname   30          3-32
@@ -34,37 +29,36 @@ import java.util.regex.PatternSyntaxException;
  */
 
 public class MP3InfoManager {
+    public final static boolean PRINT_PROCESS = false;
 
-	RandomAccessFile raf;
-	ArrayList<ArtistName> artistNameList;
-	
-	public MP3InfoManager(){
-		artistNameList = new ArrayList<ArtistName>();
-		setArtistNameList("ArtistName.txt");
-	}
-	
+    RandomAccessFile raf;
+    ArrayList<ArtistName> artistNameList;
+
+    public MP3InfoManager() {
+        artistNameList = new ArrayList<ArtistName>();
+        setArtistNameList("ArtistName.txt");
+    }
+
     boolean openMP3(String pathname) {
         try {
             raf = new RandomAccessFile(new File(pathname), "rws");
-        }
-
-        catch (FileNotFoundException ex) {
+        } catch (FileNotFoundException ex) {
             return false;
         }
 
         return true;
     }
-    
+
     boolean closeMP3() {
-    	try {
-    		raf.close();
-    	} catch (IOException e) {
-			e.printStackTrace();
-		}
+        try {
+            raf.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         return true;
     }
-    
+
     String getTrackNumber() {
 
         String trackNumber = null;
@@ -78,18 +72,18 @@ public class MP3InfoManager {
             trackNumber = new String(b);
         } catch (IOException ex) {
         }
-        
+
         //
-        trackNumber=trackNumber.trim();
-        if(trackNumber.charAt(1)=='T'){
-        	trackNumber = "0"+trackNumber.substring(0, 1);
+        trackNumber = trackNumber.trim();
+        if (trackNumber.charAt(1) == 'T') {
+            trackNumber = "0" + trackNumber.substring(0, 1);
         }
-        
+
         return trackNumber;
-        
+
     }
-    
-	String getTitle30byte() {
+
+    String getTitle30byte() {
         String strTitle = null;
 
         try {
@@ -104,8 +98,8 @@ public class MP3InfoManager {
 
         return strTitle.trim();
     }
-	
-	String getTitle() {
+
+    String getTitle() {
         String strTitle = null;
 
         try {
@@ -117,7 +111,7 @@ public class MP3InfoManager {
             String src = new String(b);
             int beginIdx = 45;
             int endIdx = src.indexOf("TPE1");
-            
+
             strTitle = src.substring(beginIdx, endIdx);
         } catch (IOException ex) {
         }
@@ -125,7 +119,7 @@ public class MP3InfoManager {
         return strTitle.trim();
     }
 
-	String getArtist() {
+    String getArtist() {
         String strArtist = null;
 
         try {
@@ -141,7 +135,7 @@ public class MP3InfoManager {
         return strArtist.trim();
     }
 
-	String getAlbum() {
+    String getAlbum() {
         String strAlbum = null;
 
         try {
@@ -156,8 +150,8 @@ public class MP3InfoManager {
 
         return strAlbum.trim();
     }
-	
-	String showALL() {
+
+    String showALL() {
         String all = null;
 
         try {
@@ -172,277 +166,281 @@ public class MP3InfoManager {
 
         return all;
     }
-	
-	String changeArtistName(String artist) { //ÀÌÁ¦ ÀÌ°Å ¾È½á
-		String englishName = null;
-		
-		for(ArtistName an : artistNameList){
-			try{
-				if(an.from.equals(artist)){
-					englishName = new String(an.to);
-					/*
-					System.out.println("----- MATCHED ----");
+
+    String changeArtistName(String artist) { //ì´ì œ ì´ê±° ì•ˆì¨
+        String englishName = null;
+
+        for (ArtistName an : artistNameList) {
+            try {
+                if (an.from.equals(artist)) {
+                    englishName = new String(an.to);
+                    /*
+                    System.out.println("----- MATCHED ----");
 					System.out.println(an.to+" -> "+englishName);
 					*/
-					break;
-				}
-			}catch(PatternSyntaxException e){
-			}
-		}
-		
-		if(englishName!=null){
-			try {
-				raf.seek(0);
-				byte b[] = new byte[1024];
-	            raf.read(b);
-	            
-	            String src = new String(b);
-	            
-				//¾Õ¿¡ ÀÖ´Â ÅÂ±× ¼öÁ¤
-	            int sizeIdx = src.indexOf("TPE1") + 4 + 3;
-	            raf.seek(sizeIdx);
-	            raf.writeBytes(Integer.toHexString(englishName.length()+1- 0x30)); //»çÀÌÁî ¼öÁ¤
-	            
-	            System.out.println("Size: "+(Integer.toHexString(englishName.length()+1)));
-	            
-	            int artistIdx = sizeIdx + 3;
-	            raf.seek(artistIdx);
-	            raf.writeBytes(englishName); //°¡¼ö ¸í ¼öÁ¤
+                    break;
+                }
+            } catch (PatternSyntaxException e) {
+            }
+        }
 
-				
-				//µÚ¿¡ ÀÖ´Â ÅÂ±× ¼öÁ¤
-				raf.seek(raf.length() - 95);
-				raf.writeBytes(englishName);
-	        } catch (IOException ex) {
-	        }
-		}
-		else{
-			englishName = artist;
-		}
-		
-		return englishName;
-	}
-	
-	String getRightArtistName(String artist){
-		String rightName = null;
-		
-		for(ArtistName an : artistNameList){
-			try{
-				if(an.from.equals(artist)){
-					rightName = new String(an.to);
-					/*
-					System.out.println("----- MATCHED ----");
-					System.out.println(an.to+" -> "+rightName);
-					*/
-					break;
-				}
-			}catch(PatternSyntaxException e){
-			}
-		}
-		
-		
-		return rightName;
-	}
-	
-	void setArtistNameList(String file){
-		FileReader fileReader = null;
-		BufferedReader bufferedReader = null;
-		
-		try {
-			fileReader = new FileReader(new File(file));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		bufferedReader = new BufferedReader(fileReader);
-	
-		while(true)
-		{
-			String tmp = null;			
-			try {
-				tmp = bufferedReader.readLine();
-			} catch (IOException e) {
-				e.printStackTrace();    		
-			}
-			
-			if(tmp == null){
-				try {
-					bufferedReader.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				
-		    	break;
-		    }
-			
-			String from = tmp.substring(0, tmp.lastIndexOf("@@"));
-			String to = tmp.substring(tmp.lastIndexOf("@@")+2);
-			ArtistName an = new ArtistName(from, to);
-			
-			artistNameList.add(an);
-		}
-	}
-	
+        if (englishName != null) {
+            try {
+                raf.seek(0);
+                byte b[] = new byte[1024];
+                raf.read(b);
 
-	public byte[] getNewFileData(String artist) {
-		byte[] data = null;
-		
-		//ÆÄÀÏ ÅëÂ°·Î ÀĞ±â
-		long filesize = 0;
-		try {
-			filesize = raf.length();
-			data = new byte[(int) filesize];
-			raf.seek(0);
-			raf.readFully(data);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		//ºí·Ï »çÀÌÁî ±¸ÇÏ±â
-		int TPE1idx;
-		for(TPE1idx=0;TPE1idx<filesize-4;TPE1idx++){
-			if(data[TPE1idx]==0x54 && data[TPE1idx+1]==0x50 && data[TPE1idx+2]==0x45 && data[TPE1idx+3]==0x31){//TPE1 == 54 50 45 31
-				break;
-			}
-		}
-		
-		int TPE2idx;
-		for(TPE2idx=0;TPE2idx<filesize-4;TPE2idx++){
-			if(data[TPE2idx]==0x54 && data[TPE2idx+1]==0x50 && data[TPE2idx+2]==0x45 && data[TPE2idx+3]==0x32){//TPE2 == 54 50 45 32
-				break;
-			}
-		}
-		if(TPE2idx > filesize - 10){ //TPE2°¡ ¾ø´Ù°í ÆÇ´ÜµÇ¸é
-			TPE2idx = 0;
-		}
-		
-		byte tmp = 0;
-		try {
-			raf.seek(TPE1idx+4+3);
-			tmp = raf.readByte();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		int artistNameSize = Integer.parseInt(Integer.toHexString(tmp & 0xFF), 16);
-		
-		int beforeTPESize = 4+3+1+3+(artistNameSize-1);
-		int newTPESize = 4+3+1+3+artist.length();
-		
-		/*
-		System.out.println("TPE1Size: "+TPE1Size);
-		System.out.println("artistNameSize: "+artistNameSize);
-		System.out.println(Integer.toHexString(tmp & 0xFF));
-		*/
-		
-		//ºí·Ï ³ª´©±â
-		byte[] frontBlock = new byte[TPE1idx];
-		byte[] TPE1Block = new byte[newTPESize];
-		byte[] midBlock = null;
-		byte[] TPE2Block = null;
-		byte[] backBlock;
-		
-		if(TPE2idx == 0){
-			backBlock = new byte[(int) (filesize - beforeTPESize - frontBlock.length)];
-		}
-		else{
-			midBlock = new byte[(TPE2idx - beforeTPESize - frontBlock.length)];
-			TPE2Block = new byte[newTPESize];
-			backBlock = new byte[(int) (filesize - beforeTPESize*2 - frontBlock.length - midBlock.length)];
-		}
-		
-		System.arraycopy(data, 0, frontBlock, 0, frontBlock.length); //ok
-		System.arraycopy(data, frontBlock.length, TPE1Block, 0, newTPESize); //ok
-		
-		if(TPE2idx == 0){
-			System.arraycopy(data, beforeTPESize + frontBlock.length, backBlock, 0, backBlock.length); //ok
-		}
-		else{
-			System.arraycopy(data, beforeTPESize + frontBlock.length, midBlock, 0, midBlock.length);
-			System.arraycopy(data, beforeTPESize + frontBlock.length + midBlock.length, TPE2Block, 0, newTPESize);  //
-			System.arraycopy(data, beforeTPESize*2 + frontBlock.length + midBlock.length, backBlock, 0, backBlock.length);
-		}
+                String src = new String(b);
 
-		//È®ÀÎ
-		/*
-		for(byte b : frontBlock){
-			System.out.print(Integer.toHexString(b & 0xFF) + " ");
-		}
-		System.out.println("######################");
-		for(byte b : TPE1Block){
-			System.out.print(Integer.toHexString(b & 0xFF) + " ");
-		}
-		System.out.println("######################");
-		int i=0;
-		for(byte b : backBlock){
-			if(i==50)break;
-			i++;
-			System.out.print(Integer.toHexString(b & 0xFF) + " ");
-		}
-		System.out.println("######################");
-		for(int i2=30;i2>1;i2--){
-			System.out.print(Integer.toHexString(backBlock[backBlock.length-i2] & 0xFF) + " ");
-		}
-		
-		//System.exit(0);
-		*/
+                //ì•ì— ìˆëŠ” íƒœê·¸ ìˆ˜ì •
+                int sizeIdx = src.indexOf("TPE1") + 4 + 3;
+                raf.seek(sizeIdx);
+                raf.writeBytes(Integer.toHexString(englishName.length() + 1 - 0x30)); //ì‚¬ì´ì¦ˆ ìˆ˜ì •
 
-		//TPE* ¼öÁ¤
-		TPE1Block[7] = (byte) (artist.length()+1);//»çÀÌÁî
-		System.arraycopy(artist.getBytes(), 0, TPE1Block, 11, artist.length()); //°¡¼ö ¸í
-		
-		if(TPE2idx != 0){
-			TPE2Block[7] = (byte) (artist.length()+1);
-			System.arraycopy(artist.getBytes(), 0, TPE2Block, 11, artist.length()); // 
-		}
-		
-		/*
-		System.out.println(artist.length());
-		System.out.println((byte) artist.length());
-		System.out.println(Integer.toHexString(TPE1Block[7] & 0xFF));
-		
-		for(byte b : TPE1Block){
-			System.out.print(Integer.toHexString(b & 0xFF) + " ");
-		}
-		for(byte b : TPE2Block){
-			System.out.print(Integer.toHexString(b & 0xFF) + " ");
-		}
-		
-		System.exit(0);
-		*/
-		
-		//ºí·Ï º´ÇÕ
-		byte[] mergedBlock;
-		
-		if(TPE2idx == 0){
-			mergedBlock = new byte[(frontBlock.length + TPE1Block.length + backBlock.length)];
-		}
-		else{
-			mergedBlock = new byte[(frontBlock.length + TPE1Block.length*2 + midBlock.length + backBlock.length)];
-		}
-		
-		System.arraycopy(frontBlock, 0, mergedBlock, 0, frontBlock.length);
-		System.arraycopy(TPE1Block, 0, mergedBlock, frontBlock.length, TPE1Block.length);
-		
-		if(TPE2idx == 0){
-			System.arraycopy(backBlock, 0, mergedBlock, frontBlock.length + TPE1Block.length, backBlock.length);
-		}
-		else{
-			System.arraycopy(midBlock, 0, mergedBlock, frontBlock.length + TPE1Block.length , midBlock.length);
-			System.arraycopy(TPE2Block, 0, mergedBlock, frontBlock.length + TPE1Block.length + midBlock.length, newTPESize);
-			System.arraycopy(backBlock, 0, mergedBlock, frontBlock.length + TPE1Block.length*2 + midBlock.length, backBlock.length);
-		}
-		
-		/*
-		System.out.println("Merged Block: ");
-		int j=0;
-		for(byte b : mergedBlock){
-			if(j++==200) break;
-			System.out.print(Integer.toHexString(b & 0xFF) + " ");
-		}
-		System.exit(0);
-		*/
-		
-		return mergedBlock;
-	}
+                System.out.println("Size: " + (Integer.toHexString(englishName.length() + 1)));
+
+                int artistIdx = sizeIdx + 3;
+                raf.seek(artistIdx);
+                raf.writeBytes(englishName); //ê°€ìˆ˜ ëª… ìˆ˜ì •
+
+
+                //ë’¤ì— ìˆëŠ” íƒœê·¸ ìˆ˜ì •
+                raf.seek(raf.length() - 95);
+                raf.writeBytes(englishName);
+            } catch (IOException ex) {
+            }
+        } else {
+            englishName = artist;
+        }
+
+        return englishName;
+    }
+
+    String getRightArtistName(String artist) {
+        String rightName = null;
+
+        for (ArtistName an : artistNameList) {
+            try {
+                if (an.from.equals(artist)) {
+                    rightName = new String(an.to);
+
+                    if (PRINT_PROCESS) {
+                        System.out.println("----- MATCHED ----");
+                        System.out.println(an.to + " -> " + rightName);
+                    }
+
+                    break;
+                }
+            } catch (PatternSyntaxException e) {
+            }
+        }
+
+
+        return rightName;
+    }
+
+    void setArtistNameList(String file) {
+        FileReader fileReader = null;
+        BufferedReader bufferedReader = null;
+
+        try {
+            fileReader = new FileReader(new File(file));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        bufferedReader = new BufferedReader(fileReader);
+
+        while (true) {
+            String tmp = null;
+            try {
+                tmp = bufferedReader.readLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if (tmp == null) {
+                try {
+                    bufferedReader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                break;
+            }
+
+            String from = tmp.substring(0, tmp.lastIndexOf("@@"));
+            String to = tmp.substring(tmp.lastIndexOf("@@") + 2);
+            ArtistName an = new ArtistName(from, to);
+
+            artistNameList.add(an);
+        }
+    }
+
+
+    public byte[] getNewFileData(String artist) {
+        byte[] data = null;
+
+        //íŒŒì¼ í†µì§¸ë¡œ ì½ê¸°
+        long filesize = 0;
+        try {
+            filesize = raf.length();
+            data = new byte[(int) filesize];
+            raf.seek(0);
+            raf.readFully(data);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //ë¸”ë¡ ì‚¬ì´ì¦ˆ êµ¬í•˜ê¸°
+        int TPE1idx;
+        for (TPE1idx = 0; TPE1idx < filesize - 4; TPE1idx++) {
+            if (data[TPE1idx] == 0x54 && data[TPE1idx + 1] == 0x50 && data[TPE1idx + 2] == 0x45 && data[TPE1idx + 3] == 0x31) {//TPE1 == 54 50 45 31
+                break;
+            }
+        }
+
+        int TPE2idx;
+        for (TPE2idx = 0; TPE2idx < filesize - 4; TPE2idx++) {
+            if (data[TPE2idx] == 0x54 && data[TPE2idx + 1] == 0x50 && data[TPE2idx + 2] == 0x45 && data[TPE2idx + 3] == 0x32) {//TPE2 == 54 50 45 32
+                break;
+            }
+        }
+        if (TPE2idx > filesize - 10) { //TPE2ê°€ ì—†ë‹¤ê³  íŒë‹¨ë˜ë©´
+            TPE2idx = 0;
+        }
+
+        byte tmp = 0;
+        try {
+            raf.seek(TPE1idx + 4 + 3);
+            tmp = raf.readByte();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        int artistNameSize = Integer.parseInt(Integer.toHexString(tmp & 0xFF), 16);
+
+        int beforeTPESize = 4 + 3 + 1 + 3 + (artistNameSize - 1);
+        int newTPESize = 4 + 3 + 1 + 3 + artist.length();
+
+
+        if (PRINT_PROCESS) {
+            System.out.println("artistNameSize: " + artistNameSize);
+            System.out.println(Integer.toHexString(tmp & 0xFF));
+        }
+
+        //ë¸”ë¡ ë‚˜ëˆ„ê¸°
+        byte[] frontBlock = new byte[TPE1idx];
+        byte[] TPE1Block = new byte[newTPESize];
+        byte[] midBlock = null;
+        byte[] TPE2Block = null;
+        byte[] backBlock;
+
+        if (TPE2idx == 0) {
+            backBlock = new byte[(int) (filesize - beforeTPESize - frontBlock.length)];
+        } else {
+            midBlock = new byte[(TPE2idx - beforeTPESize - frontBlock.length)];
+            TPE2Block = new byte[newTPESize];
+            backBlock = new byte[(int) (filesize - beforeTPESize * 2 - frontBlock.length - midBlock.length)];
+        }
+
+        System.arraycopy(data, 0, frontBlock, 0, frontBlock.length); //ok
+        System.arraycopy(data, frontBlock.length, TPE1Block, 0, newTPESize); //ok
+
+        if (TPE2idx == 0) {
+            System.arraycopy(data, beforeTPESize + frontBlock.length, backBlock, 0, backBlock.length); //ok
+        } else {
+            System.arraycopy(data, beforeTPESize + frontBlock.length, midBlock, 0, midBlock.length);
+            System.arraycopy(data, beforeTPESize + frontBlock.length + midBlock.length, TPE2Block, 0, newTPESize);  //
+            System.arraycopy(data, beforeTPESize * 2 + frontBlock.length + midBlock.length, backBlock, 0, backBlock.length);
+        }
+
+        //í™•ì¸
+        if (PRINT_PROCESS) {
+            for (byte b : frontBlock) {
+                System.out.print(Integer.toHexString(b & 0xFF) + " ");
+            }
+            System.out.println("######################");
+            for (byte b : TPE1Block) {
+                System.out.print(Integer.toHexString(b & 0xFF) + " ");
+            }
+            System.out.println("######################");
+            int i = 0;
+            for (byte b : backBlock) {
+                if (i == 50) break;
+                i++;
+                System.out.print(Integer.toHexString(b & 0xFF) + " ");
+            }
+            System.out.println("######################");
+            for (int i2 = 30; i2 > 1; i2--) {
+                System.out.print(Integer.toHexString(backBlock[backBlock.length - i2] & 0xFF) + " ");
+            }
+            //System.exit(0);
+        }
+
+
+        //TPE* ìˆ˜ì •
+        TPE1Block[7] = (byte) (artist.length() + 1);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        System.arraycopy(artist.getBytes(), 0, TPE1Block, 11, artist.length()); //ê°€ìˆ˜ ëª…
+
+        if (TPE2idx != 0) {
+            TPE2Block[7] = (byte) (artist.length() + 1);
+            System.arraycopy(artist.getBytes(), 0, TPE2Block, 11, artist.length()); //
+        }
+
+        if (PRINT_PROCESS) {
+            System.out.println(artist.length());
+            System.out.println((byte) artist.length());
+            System.out.println(Integer.toHexString(TPE1Block[7] & 0xFF));
+
+            for (byte b : TPE1Block) {
+                System.out.print(Integer.toHexString(b & 0xFF) + " ");
+            }
+            for (byte b : TPE2Block) {
+                System.out.print(Integer.toHexString(b & 0xFF) + " ");
+            }
+
+            //System.exit(0);
+        }
+
+        //ë¸”ë¡ ë³‘í•©
+        byte[] mergedBlock;
+
+        if (TPE2idx == 0) {
+            mergedBlock = new byte[(frontBlock.length + TPE1Block.length + backBlock.length)];
+        } else {
+            mergedBlock = new byte[(frontBlock.length + TPE1Block.length * 2 + midBlock.length + backBlock.length)];
+        }
+
+        System.arraycopy(frontBlock, 0, mergedBlock, 0, frontBlock.length);
+        System.arraycopy(TPE1Block, 0, mergedBlock, frontBlock.length, TPE1Block.length);
+
+        if (TPE2idx == 0) {
+            System.arraycopy(backBlock, 0, mergedBlock, frontBlock.length + TPE1Block.length, backBlock.length);
+        } else {
+            System.arraycopy(midBlock, 0, mergedBlock, frontBlock.length + TPE1Block.length, midBlock.length);
+            System.arraycopy(TPE2Block, 0, mergedBlock, frontBlock.length + TPE1Block.length + midBlock.length, newTPESize);
+            System.arraycopy(backBlock, 0, mergedBlock, frontBlock.length + TPE1Block.length * 2 + midBlock.length, backBlock.length);
+        }
+
+        if (PRINT_PROCESS) {
+            System.out.println("Merged Block: ");
+            int j = 0;
+            for (byte b : mergedBlock) {
+                if (j++ == 200) break;
+                System.out.print(Integer.toHexString(b & 0xFF) + " ");
+            }
+            //System.exit(0);
+        }
+
+        return mergedBlock;
+    }
+
+    private String byteArrayToHex(byte[] a) {
+        StringBuilder sb = new StringBuilder();
+        for (final byte b : a) {
+            sb.append(String.format("%02x ", b & 0xff));
+        }
+        return sb.toString();
+    }
 }
