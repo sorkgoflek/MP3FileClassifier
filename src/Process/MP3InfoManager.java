@@ -5,10 +5,7 @@ import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.NotSupportedException;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.regex.PatternSyntaxException;
 
@@ -51,7 +48,7 @@ public class MP3InfoManager {
             }
         }
 
-        return trackNumber;
+        return trackNumber == null ? "" : trackNumber;
     }
 
 
@@ -66,7 +63,7 @@ public class MP3InfoManager {
             }
         }
 
-        return strTitle.trim();
+        return strTitle == null ? "" : convertStringFormat(strTitle.trim());
     }
 
     String getArtist() {
@@ -80,7 +77,7 @@ public class MP3InfoManager {
             }
         }
 
-        return strArtist.trim();
+        return strArtist == null ? "" : convertStringFormat(strArtist.trim());
     }
 
     String getAlbum() {
@@ -94,7 +91,7 @@ public class MP3InfoManager {
             }
         }
 
-        return strAlbum.trim();
+        return strAlbum == null ? "" : convertStringFormat(strAlbum.trim());
     }
 
     String getRightArtistName(String artist) {
@@ -177,5 +174,18 @@ public class MP3InfoManager {
         } catch (NotSupportedException e) {
             e.printStackTrace();
         }
+    }
+
+    private String convertStringFormat(String str) {
+        boolean isIncludeKorean = str.matches(".*[ㄱ-ㅎㅏ-ㅣ가-힣]+.*");
+        if (isIncludeKorean == false) {
+            try {
+                str = new String(str.getBytes("iso-8859-1"), "euc-kr");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return str;
     }
 }

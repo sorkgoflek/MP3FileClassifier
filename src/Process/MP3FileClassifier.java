@@ -110,7 +110,7 @@ public class MP3FileClassifier extends Thread {
             String dest = dir + "\\" + meta.fileName;
             mim.setMetadata(meta, dest);
 
-            System.out.println("DONE: " + meta.path + "\n\t-> " + dest);
+            System.out.println("DONE: " + meta.path + "\n\t-> " + dest + '\n');
 
         } catch (Exception e1) {
             e1.printStackTrace();
