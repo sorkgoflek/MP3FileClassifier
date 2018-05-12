@@ -24,13 +24,13 @@ public class ProgressFrame extends JFrame implements ActionListener {
         pro.setForeground(Color.BLUE);
         pro.setStringPainted(true);
 
-        ing_jlb = new JLabel("진행중...");
-        ing_jlb.setBounds(12, 10, 84, 15);
-        ing_jlb.setFont(new Font("돋움", Font.PLAIN, 12));
+        ing_jlb = new JLabel("progressing...");
+        ing_jlb.setBounds(12, 10, 100, 15);
+        ing_jlb.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 
-        stop_btn = new JButton("중지");
+        stop_btn = new JButton("Stop");
         stop_btn.setBounds(304, 54, 68, 23);
-        stop_btn.setFont(new Font("돋움", Font.PLAIN, 12));
+        stop_btn.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
         stop_btn.addActionListener(this);
 
         setBounds(250, 250, 400, 126);
@@ -91,11 +91,11 @@ public class ProgressFrame extends JFrame implements ActionListener {
 
             setEnabled(false);
 
-            ing_jlb.setText("진행중...");
-            stop_btn.setText("확인");
+            ing_jlb.setText("progressing...");
+            stop_btn.setText("Stop");
             status = FINISH;
 
-            System.out.println("ProgressFrame 종료");
+            System.out.println("Exit ProgressFrame");
         }
     }
 

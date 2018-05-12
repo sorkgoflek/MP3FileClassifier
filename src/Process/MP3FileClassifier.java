@@ -29,6 +29,7 @@ public class MP3FileClassifier extends Thread {
         progressFrame = new ProgressFrame(MP3FileMetaList.size());
 
         start();
+        progressFrame.start();
     }
 
     public void run() {
