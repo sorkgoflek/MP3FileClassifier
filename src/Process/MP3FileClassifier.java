@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 public class MP3FileClassifier extends Thread {
     public final static boolean PRINT_PROCESS = false;
+    public final static boolean MAKE_SPECIFIC_DIR = true;
 
     ArrayList<MP3FileMeta> MP3FileMetaList = new ArrayList<MP3FileMeta>();
 
@@ -104,7 +105,7 @@ public class MP3FileClassifier extends Thread {
     void saveMp3File(MP3FileMeta meta, MP3InfoManager mim) {
 
         try {
-            String dir = getDir(meta);
+            String dir = MAKE_SPECIFIC_DIR ? getDir(meta) : destDir;
             new File(dir).mkdirs();
 
             String dest = dir + "\\" + meta.fileName;
