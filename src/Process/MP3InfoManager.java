@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.regex.PatternSyntaxException;
 
+
+// Lib: https://github.com/mpatric/mp3agic
+
 public class MP3InfoManager {
     public final static boolean PRINT_PROCESS = false;
 
@@ -113,7 +116,6 @@ public class MP3InfoManager {
             }
         }
 
-
         return rightName;
     }
 
@@ -167,7 +169,6 @@ public class MP3InfoManager {
             ID3v2 tag = mMp3File.getId3v2Tag();
             tag.setArtist(meta.artist);
         }
-
 
         try {
             mMp3File.save(dest);
